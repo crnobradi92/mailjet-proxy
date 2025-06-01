@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const Mailjet = require('node-mailjet');
 
 const mailjetClient = Mailjet.apiConnect(
@@ -11,41 +11,44 @@ const mailjetClient = Mailjet.apiConnect(
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/send', async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
+app.post('/send-email', async (req, res) => {
   try {
-    const request = await mailjetClient
+    const { name, email, subject, message } = req.body;
+
+    const request = mailjetClient
       .post('send', { version: 'v3.1' })
       .request({
         Messages: [
           {
             From: {
-              Email: 'tvojemail@example.com',
-              Name: 'Tvoje ime ili ime sajta',
+              Email: process.env.MJ_SENDER_EMAIL,
+              Name: 'Your Name',
             },
             To: [
               {
-                Email: 'primailemail@example.com',
-                Name: 'Primaoc',
+                Email: process.env.MJ_RECEIVER_EMAIL,
+                Name: 'Receiver',
               },
             ],
             Subject: subject,
             TextPart: message,
-            HTMLPart: `<h3>Poruka od: ${name} (${email})</h3><p>${message}</p>`,
+            CustomID: 'AppGettingStartedTest',
           },
         ],
       });
 
-    res.json({ message: 'success' });
-  } catch (error) {
-    console.error(error);
+    const result = await request;
+    res.send('success');
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Greška prilikom slanja mejla.' });
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server radi na portu ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server radi na portu ${PORT}`);
+});
