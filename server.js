@@ -49,3 +49,8 @@ app.post('/send-email', async (req, res) => {
     res.status(500).json({ status: "error", message: 'Greška prilikom slanja mejla.' });
   }
 });
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server radi na portu ${PORT}`);
+});
