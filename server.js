@@ -17,7 +17,7 @@ app.post('/send-email', async (req, res) => {
   const { name, email, subject, message } = req.body;
 
   if (!name || !email || !subject || !message) {
-    return res.status(400).json({ error: 'Sva polja su obavezna.' });
+    return res.status(400).json({ status: "error", message: 'Sva polja su obavezna.' });
   }
 
   try {
@@ -43,14 +43,9 @@ app.post('/send-email', async (req, res) => {
       });
 
     await request;
-    res.json({ message: 'Mejl je uspešno poslat.' });
+    res.json({ status: "success", message: 'Mejl je uspešno poslat.' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Greška prilikom slanja mejla.' });
+    res.status(500).json({ status: "error", message: 'Greška prilikom slanja mejla.' });
   }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server radi na portu ${PORT}`);
 });
