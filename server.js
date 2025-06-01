@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const Mailjet = require('node-mailjet');
 
@@ -11,7 +10,7 @@ const mailjetClient = Mailjet.connect(
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json()); // <-- Ovo je sada ispravno i sigurnije
 
 app.post('/send-email', async (req, res) => {
   const { name, email, subject, message } = req.body;
@@ -49,8 +48,8 @@ app.post('/send-email', async (req, res) => {
     res.status(500).json({ status: "error", message: 'Greška prilikom slanja mejla.' });
   }
 });
-const PORT = process.env.PORT || 3000;
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server radi na portu ${PORT}`);
 });
