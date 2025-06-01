@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const Mailjet = require('node-mailjet');
 
-const mailjetClient = Mailjet.apiConnect(
+const mailjetClient = Mailjet.connect(
   process.env.MJ_APIKEY_PUBLIC,
   process.env.MJ_APIKEY_PRIVATE
 );
@@ -12,36 +12,38 @@ const mailjetClient = Mailjet.apiConnect(
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/send-email', async (req, res) => {
-  try {
-    const { name, email, subject, message } = req.body;
+  const { name, email, subject, message } = req.body;
 
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ error: 'Sva polja su obavezna.' });
+  }
+
+  try {
     const request = mailjetClient
-      .post('send', { version: 'v3.1' })
+      .post("send", { version: 'v3.1' })
       .request({
         Messages: [
           {
             From: {
               Email: process.env.MJ_SENDER_EMAIL,
-              Name: 'Your Name',
+              Name: "Tvoj sajt"
             },
             To: [
               {
                 Email: process.env.MJ_RECEIVER_EMAIL,
-                Name: 'Receiver',
-              },
+                Name: "Primaoc"
+              }
             ],
             Subject: subject,
-            TextPart: message,
-            CustomID: 'AppGettingStartedTest',
-          },
-        ],
+            TextPart: `Ime: ${name}\nEmail: ${email}\nPoruka:\n${message}`,
+          }
+        ]
       });
 
-    const result = await request;
-    res.send('success');
+    await request;
+    res.json({ message: 'Mejl je uspešno poslat.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Greška prilikom slanja mejla.' });
